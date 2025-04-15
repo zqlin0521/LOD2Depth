@@ -1,2 +1,137 @@
 # LOD2Depth
 A tool for aligning 3D mesh models to SfM-based coordinates and generating per-view depth and normal maps using raycasting.
+<p align="center">
+  <img src="./assets/alignment_verification_DJI_20241217084245_0006_D.png" alt="Depth-RGB Alignment Example" width="80%">
+</p>
+
+---
+
+## 📦 Overview
+
+This script performs the following:
+
+- Loads a LoD2 3D building mesh in OBJ format
+- Transforms the mesh to a target coordinate frame defined by a reference JSON file
+- Optionally visualizes the transformed mesh
+- Loads COLMAP camera poses and images
+- Generates per-view **depth** and **normal** maps through raycasting
+- Saves the generated maps to the output directory
+
+---
+
+## 📁 Dataset Preparation
+
+Please download the dataset folder [`data`](https://syncandshare.lrz.de/getlink/fiN5k3QsnMCZCPyWk9z2iu/data.zip) and place it in the **root directory** of this repository.  
+
+## ⚙️ Installation
+
+**Note**: This code was tested on **Ubuntu 22.04**.
+
+Follow these steps to install the necessary dependencies and set up the project:
+
+1. **Clone the Repository**  
+   ```bash
+   git clone https://github.com/zqlin0521/LOD2Depth.git
+   cd LOD2Depth
+   ```
+2. **Create and Activate a Conda Environment**  
+
+    ```bash
+    conda create --name LOD2Depth python=3.10.9
+    conda activate LOD2Depth
+    pip install -r requirements.txt
+    ```
+
+## 🚀 Usage
+
+### Basic command (generate depth & normal maps):
+
+```bash
+python main.py --generate_maps
+```
+This will:
+
+- Load the mesh from `./data/Mesh/TUM_LoD2.obj`
+- Transform it using the reference frame at `./data/Campus_1179/scene_reference_frame.json`
+- Use COLMAP data from `./data/Campus_1179/undistorted/sparse_txt`
+- Select images from `./data/building1/undistorted/images` as a subset for raycasting
+- Generate and save depth/normal maps into `./output/building1/`
+
+---
+
+## 🔧 Optional Arguments
+
+| Argument                        | Default                                                  | Description                                                    |
+|--------------------------------|----------------------------------------------------------|----------------------------------------------------------------|
+| `--visualize`                  | `False`                                                  | Visualize the transformed mesh                                 |
+| `--z_offset`                   | `46.55`                                                  | Additional Z-axis offset applied during transformation         |
+| `--building_name`              | `building1`                                              | Building dataset name                                          |
+| `--subset_images_dir`          | `./data/building1/undistorted/images`                   | Directory containing images to process                         |
+| `--reference_frame_path`       | `./data/Campus_1179/scene_reference_frame.json`         | Path to the global reference frame JSON                        |
+| `--colmap_dir`                 | `./data/Campus_1179/undistorted/sparse_txt`             | Directory containing COLMAP `cameras.txt` and `images.txt`    |
+| `--depth_normal_dir`           | `./output/building1/`                                   | Directory to save generated depth and normal maps              |
+| `--reference_frame_path_building` | `./data/building1/scene_reference_frame.json`          | Path to the building-specific reference frame JSON             |
+| `--output_path`                | `./data/building1/transformed_mesh.obj`                 | Path to save the transformed mesh                              |
+| `--output_building_path`       | `./data/building1/transformed_mesh_building1.obj`       | Output path for the building-specific transformed mesh         |
+
+## 📝 Output
+
+- Transformed mesh file (`.obj`)
+- Depth maps: saved as `.npy` and visualized images (e.g. `.png`)
+- Normal maps: per-pixel surface normals and visualizations
+
+All saved under:
+
+```bash
+./output/<building_name>/
+```
+
+## 🔍 Alignment Verification
+
+This repository also includes a utility script to verify the alignment between generated depth/normal maps and their corresponding RGB images.
+
+### ✅ Features
+
+- Alpha blending and checkerboard overlay visualizations  
+- Automatic resizing of mismatched depth/RGB dimensions  
+- Batch mode for processing entire folders  
+- Interactive slider to dynamically change blending alpha  
+- Saves overlay images to a specified directory  
+
+---
+
+### 🧪 Example Usage
+
+Run with default settings:
+```bash
+python verify_alignment.py
+```
+
+#### ✅ Single image pair:
+
+```bash
+python verify_alignment.py \
+    --rgb ./data/building1/undistorted/images/DJI_20241217084245_0006_D.JPG \
+    --depth ./output/building1/vis_depth/DJI_20241217084245_0006_D.png \
+    --output ./output/alignment_verification \
+    --alpha 0.5
+```
+
+#### ✅ Batch processing for a directory:
+```bash
+python verify_alignment.py \
+    --rgb ./data/building1/undistorted/images \
+    --depth ./output/building1/vis_depth \
+    --output ./output/alignment_verification \
+    --batch
+```
+
+### 💡 Output
+
+- Side-by-side image comparisons including:
+  - RGB
+  - Depth/Normal visualization
+  - Alpha blended overlay
+  - Checkerboard overlay
+- Optional interactive slider for real-time alpha blending
+- Saved results in `./output/alignment_verification/`

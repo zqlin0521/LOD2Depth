@@ -54,7 +54,7 @@ def main():
                         default=f'{base_path}/{{args.building_name}}/transformed_mesh_{{args.building_name}}.obj',
                         help='Output path for transformed building OBJ file')
     parser.add_argument('--depth_normal_dir', type=str, 
-                        default=f'{base_path}/{{args.building_name}}/undistorted/prior',
+                        default=f'./output/{{args.building_name}}',
                         help='Base output directory for depth and normal maps')
     
     args = parser.parse_args()
